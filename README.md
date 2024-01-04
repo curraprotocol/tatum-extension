@@ -9,11 +9,16 @@ Depending on the volume of your validations, a [Tatum](https://tatum.io) API Key
 # How to use
 
 ```typescript
+import { Curra } from "@curra/sdk";
+import { CurraWebhookValidator } from "@curra/tatum-extension";
+import { Network, TatumSDK } from "@tatumio/tatum";
+
 // initialize Curra SDK
 const curra = Curra.fromApiKey({ apiKey });
 
 const tatumSdk = await TatumSDK.init({
-  network: testData.network,
+  // specify webhooks network
+  network: Network.ETHEREUM,
   configureExtensions: [
     {
       type: CurraWebhookValidator,
