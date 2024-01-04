@@ -1,6 +1,6 @@
-import { Blockchain, Curra, IncomeStatus, EvmIncomeStatus } from "@curra/sdk";
-import { TatumSDK, BaseEvm, Network } from "@tatumio/tatum";
-import { beforeAll, afterAll, test } from "vitest";
+import { Blockchain, Curra, EvmIncomeStatus, IncomeStatus } from "@curra/sdk";
+import { BaseEvm, Network, TatumSDK } from "@tatumio/tatum";
+import { afterAll, beforeAll, test } from "vitest";
 
 import { CurraWebhookValidator } from "./extension";
 
@@ -46,9 +46,8 @@ const testData = {
 
 let tatumSdk: BaseEvm;
 
-let apiKey = process.env.CURRA_API_KEY;
-if (!apiKey)
-	throw new Error("CURRA_API_KEY env variable is not set.");
+const apiKey = process.env.CURRA_API_KEY;
+if (!apiKey) throw new Error("CURRA_API_KEY env variable is not set.");
 
 const curra = Curra.fromApiKey({ apiKey });
 
@@ -75,7 +74,7 @@ test(
 			.extension(CurraWebhookValidator)
 			.validateBodyOrAbort(testData.webhooks.erc20);
 	},
-	{ timeout: 60000 }
+	{ timeout: 60000 },
 );
 
 test(
@@ -85,5 +84,5 @@ test(
 			.extension(CurraWebhookValidator)
 			.validateBodyOrAbort(testData.webhooks.coin);
 	},
-	{ timeout: 60000 }
+	{ timeout: 60000 },
 );

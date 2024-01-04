@@ -1,9 +1,9 @@
 import { Curra, WebhookIncomePayloadDto } from "@curra/sdk";
 import {
+	EvmBasedBeaconRpcSuite,
 	ITatumSdkContainer,
 	Network,
 	TatumSdkExtension,
-	EvmBasedBeaconRpcSuite,
 } from "@tatumio/tatum";
 import { Token } from "@tatumio/tatum/dist/src/service/token";
 import Decimal from "decimal.js-light";
@@ -31,7 +31,7 @@ export class CurraWebhookValidator extends TatumSdkExtension {
 
 	constructor(
 		tatumSdkContainer: ITatumSdkContainer,
-		private readonly options: CurraWebhookValidatorOptions
+		private readonly options: CurraWebhookValidatorOptions,
 	) {
 		super(tatumSdkContainer);
 		this.rpc = tatumSdkContainer.getRpc();
@@ -47,7 +47,7 @@ export class CurraWebhookValidator extends TatumSdkExtension {
 
 	// validate webhook body against the blockchain or throw
 	public async validateBodyOrAbort(
-		body: WebhookIncomePayloadDto
+		body: WebhookIncomePayloadDto,
 	): Promise<void> {
 		const error = await this.validateBody(body);
 		if (!error) return;
@@ -56,7 +56,7 @@ export class CurraWebhookValidator extends TatumSdkExtension {
 
 	// validate webhook body against the blockchain
 	public async validateBody(
-		body: WebhookIncomePayloadDto
+		body: WebhookIncomePayloadDto,
 	): Promise<CurraWebhookValidatorError | undefined> {
 		const curra = this.options.curra;
 
@@ -78,7 +78,7 @@ export class CurraWebhookValidator extends TatumSdkExtension {
 		} else {
 			const erc20Transfers = await this.getValidatableERC20Transfers(
 				body,
-				asset.address
+				asset.address,
 			);
 			transfers.push(...erc20Transfers);
 		}
@@ -89,7 +89,7 @@ export class CurraWebhookValidator extends TatumSdkExtension {
 			if (getAddress(transfer.from) !== getAddress(body.fromAddresses[0])) {
 				error = new CurraWebhookValidatorError(
 					`Transfer from ${transfer.from} instead of ${body.fromAddresses[0]}`,
-					CurraWebhookValidatorErrorCode.FromAddress
+					CurraWebhookValidatorErrorCode.FromAddress,
 				);
 				continue;
 			}
@@ -97,7 +97,7 @@ export class CurraWebhookValidator extends TatumSdkExtension {
 			if (getAddress(transfer.to) !== getAddress(body.toAddress.value)) {
 				error = new CurraWebhookValidatorError(
 					`Transfer to ${transfer.to} instead of ${body.toAddress.value}`,
-					CurraWebhookValidatorErrorCode.ToAddress
+					CurraWebhookValidatorErrorCode.ToAddress,
 				);
 				continue;
 			}
@@ -105,7 +105,7 @@ export class CurraWebhookValidator extends TatumSdkExtension {
 			if (transfer.valueUnits !== BigInt(body.valueUnits)) {
 				error = new CurraWebhookValidatorError(
 					`Transfer valueUnits ${transfer.valueUnits} instead of ${body.valueUnits}`,
-					CurraWebhookValidatorErrorCode.ValueUnits
+					CurraWebhookValidatorErrorCode.ValueUnits,
 				);
 				continue;
 			}
@@ -113,7 +113,7 @@ export class CurraWebhookValidator extends TatumSdkExtension {
 			if (!new Decimal(transfer.value).equals(body.value)) {
 				error = new CurraWebhookValidatorError(
 					`Transfer value ${transfer.value} instead of ${body.value}`,
-					CurraWebhookValidatorErrorCode.Value
+					CurraWebhookValidatorErrorCode.Value,
 				);
 				continue;
 			}
@@ -128,13 +128,13 @@ export class CurraWebhookValidator extends TatumSdkExtension {
 	// fetch all ERC20 transfers that can relate to the webhook
 	private async getValidatableERC20Transfers(
 		body: WebhookIncomePayloadDto,
-		assetAddress: string
+		assetAddress: string,
 	): Promise<ValidatableTransfer[]> {
 		const tokenMetadata = await this.token.getTokenMetadata({
 			tokenAddress: assetAddress,
 		});
 		const transferEventTopic = getEventSelector(
-			"Transfer(address,address,uint256)"
+			"Transfer(address,address,uint256)",
 		);
 		const fromTopic = pad(body.fromAddresses[0] as `0x${string}`);
 		const toTopic = pad(body.toAddress.value as `0x${string}`);
@@ -150,8 +150,8 @@ export class CurraWebhookValidator extends TatumSdkExtension {
 		const transfers: ValidatableTransfer[] = [];
 
 		for (const log of logs) {
-			const from = "0x" + log.topics[1].slice(-40);
-			const to = "0x" + log.topics[2].slice(-40);
+			const from = `0x${log.topics[1].slice(-40)}`;
+			const to = `0x${log.topics[2].slice(-40)}`;
 			const valueUnits = fromHex(log.data, "bigint");
 
 			transfers.push({
@@ -166,6 +166,7 @@ export class CurraWebhookValidator extends TatumSdkExtension {
 	}
 
 	// geth traces are nested, this flattens them to simplify processing
+	// rome-ignore lint: tech debt :)
 	private flattenTraces(trace: any): any[] {
 		const result = [trace];
 		if (trace.calls) {
@@ -178,7 +179,7 @@ export class CurraWebhookValidator extends TatumSdkExtension {
 
 	// fetch all coin transfers that can relate to the webhook
 	private async getValidatableCoinTransfers(
-		body: WebhookIncomePayloadDto
+		body: WebhookIncomePayloadDto,
 	): Promise<ValidatableTransfer[]> {
 		const tracesResponse = await this.rpc.debugTraceTransaction(body.txHash, {
 			tracer: "callTracer",
@@ -188,6 +189,7 @@ export class CurraWebhookValidator extends TatumSdkExtension {
 			},
 		});
 		const traces = this.flattenTraces(tracesResponse.result);
+	  // rome-ignore lint: tech debt :)
 		return traces.map((trace: any) => {
 			const valueUnits = fromHex(trace.value, "bigint");
 			return {
