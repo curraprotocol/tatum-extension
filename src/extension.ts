@@ -189,7 +189,7 @@ export class CurraWebhookValidator extends TatumSdkExtension {
 			},
 		});
 		const traces = this.flattenTraces(tracesResponse.result);
-	  // rome-ignore lint: tech debt :)
+		// rome-ignore lint: tech debt :)
 		return traces.map((trace: any) => {
 			const valueUnits = fromHex(trace.value, "bigint");
 			return {
