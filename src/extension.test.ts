@@ -1,4 +1,4 @@
-import { Blockchain, Curra, EvmIncomeStatus, IncomeStatus } from "@curra/sdk";
+import { Blockchain, EvmIncomeStatus, IncomeStatus } from "@curra/sdk";
 import { BaseEvm, Network, TatumSDK } from "@tatumio/tatum";
 import { afterAll, beforeAll, test } from "vitest";
 
@@ -49,15 +49,13 @@ let tatumSdk: BaseEvm;
 const apiKey = process.env.CURRA_API_KEY;
 if (!apiKey) throw new Error("CURRA_API_KEY env variable is not set.");
 
-const curra = Curra.fromApiKey({ apiKey });
-
 beforeAll(async () => {
 	tatumSdk = await TatumSDK.init({
 		network: testData.network,
 		configureExtensions: [
 			{
 				type: CurraWebhookValidator,
-				config: { curra },
+				config: { apiKey },
 			},
 		],
 	});
