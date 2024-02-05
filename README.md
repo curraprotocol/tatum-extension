@@ -14,7 +14,7 @@ import { CurraWebhookValidator } from "@curra/tatum-extension";
 import { Network, TatumSDK } from "@tatumio/tatum";
 
 // initialize Curra SDK
-const curra = Curra.fromApiKey({ apiKey });
+const apiKey = "curra-api-key"
 
 const tatumSdk = await TatumSDK.init({
   // specify webhooks network
@@ -22,7 +22,7 @@ const tatumSdk = await TatumSDK.init({
   configureExtensions: [
     {
       type: CurraWebhookValidator,
-      config: { curra },
+      config: { apiKey },
     },
   ],
   apiKey: {
